@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Near By</string>
+
+
+    <!--view flipper-->
+    <string name="server_not_responding">Server not responding</string>
+    <string name="internet_connection_has_been_lost">internet connection has been lost</string>
+    <string name="retry">retry</string>
+
+
+    <string name="place_image">place image</string>
+    <string name="no_data_found">No data found</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="realtime">RealTime</string>
+    <string name="single_update">Single Update</string>
+
+</resources>

@@ -1,0 +1,130 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-kapt'
+
+apply plugin: 'kotlin-android-extensions'
+
+
+
+android {
+
+    compileSdkVersion versions.compileSdkVersion
+    defaultConfig {
+        applicationId "com.abualgait.msayed.nearby"
+        minSdkVersion versions.minSdkVersion
+        targetSdkVersion versions.targetSdkVersion
+        versionCode versions.code
+        versionName versions.name
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // For vector graphic support
+        vectorDrawables.useSupportLibrary = true
+
+        // For multiDex
+        multiDexEnabled true
+
+        // annotationProcessor
+        android.defaultConfig.javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
+    }
+    buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"https://api.foursquare.com/v2/venues/\"")
+            buildConfigField("String", "CLIENTID", "\"IE3MM3MDDVTY3KEIZZFGY5GLL0XKCMQJQQKBN1ELNZ13S1HE\"")
+            buildConfigField("String", "CLIENT_SECRET", "\"J3MVXYWQKQOYWLLJ01EE53Y1OEH0SVPBSAEJMUROBPDVD1DE\"")
+
+        }
+
+    }
+
+    // Java 8 features, i.e Lambda...
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+    // solves Error converting bytecode to dex
+    dexOptions {
+        javaMaxHeapSize "4g"
+    }
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/MANIFEST.MF'
+    }
+    useLibrary 'org.apache.http.legacy'
+
+}
+
+dependencies {
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.3.0-alpha03'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0-alpha03'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+
+    implementation deps.support.appCompat
+    implementation deps.support.compat
+    implementation deps.support.design
+    implementation deps.support.preference
+    implementation deps.support.cardView
+    implementation deps.google.locations
+
+    implementation deps.multidex
+    implementation deps.picasso
+    implementation deps.constraintLayout
+    implementation deps.parceler
+    kapt deps.parcelerAnnotaitionProcessor
+
+    implementation deps.retrofit.runtime
+    implementation deps.retrofit.adapter
+    implementation deps.retrofit.converter
+
+    implementation deps.okHttp.runtime
+    implementation deps.okHttp.interceptor
+
+    implementation deps.rx.android
+    implementation deps.rx.java
+    implementation deps.rx.binding
+    implementation deps.rx.lifeCycleComponent
+    implementation deps.rx.permissions
+    implementation deps.rx.kotlin
+
+    implementation deps.intuit.sdp
+    implementation deps.intuit.ssp
+
+    implementation deps.archLifecycle.ext
+    kapt deps.archLifecycle.commonJava8
+
+    implementation deps.koin.android
+    implementation deps.koin.scope
+    implementation deps.koin.viewmodel
+    implementation deps.koin.java
+    implementation deps.koin.ext
+
+    implementation deps.arch.fragment
+    implementation deps.arch.ui
+
+    implementation deps.flashbar
+    implementation deps.calligraphy
+
+    implementation deps.room.runtime
+    kapt deps.room.proceesor
+
+}
+
+repositories {
+    mavenCentral()
+}

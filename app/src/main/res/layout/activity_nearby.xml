@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ /**
+  ~  * Created by Muhammad Sayed on 4/30/19 2:57 PM
+  ~  * Copyright (c) 2019 . All rights reserved.
+  ~  * Last modified 4/16/19 2:23 PM
+  ~  */
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include layout="@layout/app_bar" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/mSwipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ViewFlipper
+            android:id="@+id/mViewFlipper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible">
+
+            <include layout="@layout/activity_nearby_main_view" />
+
+            <include layout="@layout/app_loading_screen" />
+
+            <include layout="@layout/app_no_result_found" />
+
+            <include layout="@layout/app_no_internet_connection" />
+
+            <include layout="@layout/app_no_data_found" />
+        </ViewFlipper>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>
