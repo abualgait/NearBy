@@ -83,7 +83,7 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
         } else {
              val myLocationListener = MyLocationListener()
             val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3, 3f, myLocationListener)
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3, 500f, myLocationListener)
 
         }
         checkValidation()
@@ -150,7 +150,7 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
                     locationProvider!!.startLocationUpdates()
                     val myLocationListener = MyLocationListener()
                     val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3, 3f, myLocationListener)
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3, 500f, myLocationListener)
 
                 } else {
                     val builder = AlertDialog.Builder(this)
