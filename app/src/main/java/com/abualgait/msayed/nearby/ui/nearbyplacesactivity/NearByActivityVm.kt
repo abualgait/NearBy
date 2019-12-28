@@ -20,6 +20,16 @@ val nearbyActivityModule = module {
 }
 
 class NearByActivityVm(dataManager: DataManager) : BaseViewModel(dataManager) {
+
+
+    fun isValidPoint(point: String): Boolean {
+        return point != "0.0"
+    }
+
+    fun isValidLatLng(latLng: String): Boolean {
+        return latLng.isNotEmpty()
+    }
+
     var payload: MutableLiveData<List<Venue>> = MutableLiveData()
     var venuePOJO: MutableLiveData<Venue> = MutableLiveData()
     private val showError = MutableLiveData<String>()

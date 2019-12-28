@@ -210,7 +210,7 @@ ext.deps = [
                 ],
 
         circleImageView             : "de.hdodenhof:circleimageview:${versions.circleImageView}",
-        googlemapsanimations             : "com.github.aarsy.googlemapsanimations:googlemapsanimations:${versions.googlemapsanimations}",
+        googlemapsanimations        : "com.github.aarsy.googlemapsanimations:googlemapsanimations:${versions.googlemapsanimations}",
         expandablerecyclerview      : "com.github.huajianjiang:expandablerecyclerview:${versions.expandablerecyclerview}",
         expandablecheckrecyclerview : "com.thoughtbot:expandablecheckrecyclerview:${versions.expandablecheckrecyclerview}",
         circularimageview           : "com.mikhaellopez:circularimageview:${versions.circularimageview}",
