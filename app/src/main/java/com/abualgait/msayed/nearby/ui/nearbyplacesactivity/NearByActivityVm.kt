@@ -4,11 +4,15 @@ import android.annotation.SuppressLint
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.abualgait.msayed.nearby.shared.data.DataManager
+import com.abualgait.msayed.nearby.shared.data.model.NearByPlacesResponse
 import com.abualgait.msayed.nearby.shared.data.model.Venue
 import com.abualgait.msayed.nearby.shared.vm.BaseViewModel
+import com.abualgait.msayed.thiqah.shared.util.ext.with
+import com.abualgait.msayed.thiqah.shared.util.ext.withDB
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.observables.ConnectableObservable
 import io.reactivex.observers.DisposableObserver
 import io.reactivex.schedulers.Schedulers
 import org.koin.android.viewmodel.dsl.viewModel
@@ -30,85 +34,64 @@ class NearByActivityVm(dataManager: DataManager) : BaseViewModel(dataManager) {
         return latLng.isNotEmpty()
     }
 
-    var payload: MutableLiveData<List<Venue>> = MutableLiveData()
-    var venuePOJO: MutableLiveData<Venue> = MutableLiveData()
-    private val showError = MutableLiveData<String>()
+    var payload: MutableLiveData<ResultUIModel> = MutableLiveData()
     private val disposeDisposable = MutableLiveData<CompositeDisposable>()
-    fun getNearByPlacesLiveData(): LiveData<List<Venue>> {
-        return payload
-    }
 
-    fun getVenueLiveData(): LiveData<Venue> {
-        return venuePOJO
-    }
-
-    fun getError(): LiveData<String> {
-        return showError
-    }
 
     fun getDisposable(): LiveData<CompositeDisposable> {
         return disposeDisposable
     }
 
 
-    @SuppressLint("CheckResult")
-    fun getVenuesFromDatabase() {
-        Observable.defer { Observable.just(database.getVenueDao()!!.getItems()) }
-            .subscribeOn(Schedulers.computation())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({ result ->
-                view.hideLoading()
-                payload.value = result
-            }, { error ->
-                view.hideLoading()
-                showError.value = error.message
-            })
-
+    private fun getVenuesFromLocale(): Observable<List<Venue>> {
+        return Observable.defer { Observable.just(database.getVenueDao()!!.getItems()) }
+            .withDB(scheduler)
     }
 
-    fun getVenuesFromLocale(): Observable<List<Venue>> {
-        return Observable.defer { Observable.just(database.getVenueDao()!!.getItems()) }
-            .subscribeOn(Schedulers.computation())
-            .observeOn(AndroidSchedulers.mainThread())
+    private fun getVenuesFromApiCall(placesObservable: ConnectableObservable<NearByPlacesResponse>): Observable<List<Venue>> {
+        return placesObservable.map {
+            Observable.just(database)
+                .withDB(scheduler)
+                .subscribe { db ->
+                    db.getVenueDao()?.deleteArticles()
+                    db.getVenueDao()?.insertALLItems(it.response.venues as MutableList<Venue>)
+                }
+
+            it
+        }.subscribeOn(Schedulers.io())
+            .map { it.response.venues }
     }
 
     @SuppressLint("CheckResult")
     fun getNearByPlaces(latLng: String) {
-
-        view.showLoading()
+        payload.value = ResultUIModel(isLoading = true)
         val placesObservable = api.getNearByPlaces(latLng).replay()
-
         val disposable = CompositeDisposable()
-
         disposable.add(
             Observable.concat(
-                placesObservable
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .map { it.response.venues }, getVenuesFromLocale()
-            ).subscribeWith(object : DisposableObserver<List<Venue>>() {
+                getVenuesFromApiCall(placesObservable), getVenuesFromLocale()
+            ).with(scheduler)
 
-                override fun onNext(result: List<Venue>) {
-                    view.hideLoading()
-                    payload.value = result
-                    Observable.just(database)
-                        .subscribeOn(Schedulers.io())
-                        .subscribe { db ->
-                            db.getVenueDao()?.deleteArticles()
-                            db.getVenueDao()?.insertALLItems(result as MutableList<Venue>)
-                        }
+                .subscribeWith(object : DisposableObserver<List<Venue>>() {
+                    override fun onComplete() {
 
-                }
+                    }
 
-                override fun onError(error: Throwable) {
-                    view.hideLoading()
-                    showError.value = error.message
-                }
+                    override fun onNext(result: List<Venue>) {
+                        payload.value = ResultUIModel(list = result)
+                        Observable.just(database)
+                            .subscribeOn(Schedulers.io())
+                            .subscribe { db ->
+                                db.getVenueDao()?.deleteArticles()
+                                db.getVenueDao()?.insertALLItems(result as MutableList<Venue>)
+                            }
+                    }
 
-                override fun onComplete() {
+                    override fun onError(error: Throwable) {
+                        payload.value = ResultUIModel(error = error)
+                    }
+                })
 
-                }
-            })
         )
 
         disposable.add(
@@ -124,12 +107,13 @@ class NearByActivityVm(dataManager: DataManager) : BaseViewModel(dataManager) {
                 .subscribeWith(object : DisposableObserver<Venue>() {
 
                     override fun onNext(venue: Venue) {
-                        venuePOJO.value = venue
+                        payload.value = ResultUIModel(venue = venue)
 
                     }
 
                     override fun onError(error: Throwable) {
-                        showError.value = error.message
+                        payload.value = ResultUIModel(error = error)
+
                     }
 
                     override fun onComplete() {
@@ -152,4 +136,12 @@ class NearByActivityVm(dataManager: DataManager) : BaseViewModel(dataManager) {
                 return@map venue
             }
     }
+
+
+    data class ResultUIModel(
+        val venue: Venue? = null,
+        val list: List<Venue> = emptyList(),
+        val error: Throwable? = null,
+        val isLoading: Boolean = false
+    )
 }

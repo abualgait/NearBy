@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import com.abualgait.msayed.nearby.shared.data.DataManager
 import com.abualgait.msayed.nearby.shared.databases.DBRepository
 import com.abualgait.msayed.nearby.shared.network.ApiRepository
+import com.abualgait.msayed.nearby.shared.rx.SchedulerProvider
 import com.abualgait.msayed.nearby.shared.ui.view.BaseView
 import com.abualgait.msayed.nearby.shared.util.SharedPref
 import com.abualgait.msayed.nearby.shared.util.io.app.MyApp
@@ -19,6 +20,7 @@ open class BaseViewModel(dm: DataManager)
     var pref: SharedPref = dm.pref
     var api: ApiRepository = dm.api
     var database: DBRepository = dm.database
+    var scheduler: SchedulerProvider = dm.schedulerProvider
 
     val disposables: CompositeDisposable = CompositeDisposable()
 

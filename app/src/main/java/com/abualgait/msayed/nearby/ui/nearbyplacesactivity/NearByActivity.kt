@@ -1,6 +1,5 @@
 package com.abualgait.msayed.nearby.ui.nearbyplacesactivity
 
-import Utils
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -39,7 +38,8 @@ import kotlinx.android.synthetic.main.activity_nearby_main_view.*
 import org.koin.android.viewmodel.ext.android.viewModel
 
 
-class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener, ILocationCallbacks {
+class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener,
+    ILocationCallbacks {
     override fun getCurrentLocation(currentLocation: Location) {
         vm.pref.latitude = currentLocation.latitude.toString()
         vm.pref.longitude = currentLocation.longitude.toString()
@@ -83,7 +83,12 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
         } else {
             val myLocationListener = MyLocationListener()
             val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3, 500f, myLocationListener)
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                3,
+                500f,
+                myLocationListener
+            )
 
         }
         checkValidation()
@@ -142,15 +147,25 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
 
 
     @SuppressLint("MissingPermission")
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         if (requestCode == ConstValue.MY_PERMISSIONS_CODE) {
             for (i in 0 until grantResults.size)
                 if (grantResults.isNotEmpty() && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
                     //granted
                     locationProvider!!.startLocationUpdates()
                     val myLocationListener = MyLocationListener()
-                    val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 3, 500f, myLocationListener)
+                    val locationManager =
+                        getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                    locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER,
+                        3,
+                        500f,
+                        myLocationListener
+                    )
 
                 } else {
                     val builder = AlertDialog.Builder(this)
@@ -175,13 +190,19 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
             // Check for the integer request code originally supplied to startResolutionForResult().
             ConstValue.LOCATION_REQUEST_CODE -> when (resultCode) {
                 Activity.RESULT_OK -> {
-                    Log.i("PendingIntent", "User agreed to make required location settings changes.")
+                    Log.i(
+                        "PendingIntent",
+                        "User agreed to make required location settings changes."
+                    )
                     locationProvider!!.startLocationUpdates()
                 }
                 Activity.RESULT_CANCELED -> {
                     //if user cancels gps enabling
                     //show the enabling popup again
-                    Log.i("PendingIntent", "User chose not to make required location settings changes.")
+                    Log.i(
+                        "PendingIntent",
+                        "User chose not to make required location settings changes."
+                    )
                     startGpsResolution()
                 }
             }
@@ -242,64 +263,40 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
     @SuppressLint("CheckResult")
     private fun checkValidation() {
         setAdapter()
-        if (Utils.isOnline(activity())) {
+        getPlacesFromApi()
 
-            getPlacesFromApi()
-        } else {
-            loadPlaceFromDB()
-        }
-    }
-
-    private fun loadPlaceFromDB() {
-        vm.getNearByPlacesLiveData()
-            .observe(
-                this,
-                Observer { response ->
-                    showMainLayout(view)
-                    checkResponse(response)
-
-                })
-
-        vm.getError()
-            .observe(
-                this,
-                Observer { error ->
-                    Log.e("Error", error)
-                    showErrorData()
-
-                })
-        vm.getVenuesFromDatabase()
     }
 
     private fun getPlacesFromApi() {
-        showLoader()
-        vm.getNearByPlacesLiveData()
+
+        vm.payload
             .observe(
                 this,
-                Observer { response ->
-                    showMainLayout(view)
-                    checkResponse(response)
+                Observer {
+                    when {
+                        it.isLoading -> {
+                            showLoading()
+                            showLoader()
 
-                })
+                        }
+                        it.error != null -> {
+                            hideLoading()
+                            showErrorData()
+                        }
+                        it.venue != null -> {
+                            hideLoading()
+                            val position = mList!!.indexOf(it.venue)
+                            if (position == -1) return@Observer
+                            mList!![position] = it.venue
+                            commonadapter!!.notifyItemChanged(position)
+                        }
+                        else -> {
+                            hideLoading()
+                            checkResponse(it.list)
+                        }
+                    }
 
-        vm.getError()
-            .observe(
-                this,
-                Observer { error ->
-                    Log.e("Error", error)
-                    showErrorData()
 
-                })
-
-        vm.getVenueLiveData()
-            .observe(
-                this,
-                Observer { venue ->
-
-                    val position = mList!!.indexOf(venue)
-                    if (position == -1) return@Observer
-                    mList!![position] = venue
-                    commonadapter!!.notifyItemChanged(position)
                 })
 
         vm.getNearByPlaces(vm.pref.latitude + "," + vm.pref.longitude)
@@ -308,8 +305,10 @@ class NearByActivity : BaseActivity<NearByActivityVm>(), SimpleItemClickListener
     }
 
     private fun checkResponse(response: List<Venue>?) {
+
         mList?.clear()
         if (response != null) {
+            showMainLayout(view)
             mList!!.addAll(response)
             commonadapter!!.notifyDataSetChanged()
 
